@@ -1,0 +1,1290 @@
+---
+title: "ASAN Cholangio_GL_Final analysis 092024"
+output: html_notebook
+---
+library(swimplot)
+library(grid)
+library(gtable)
+library(readr) 
+library(mosaic)
+library(dplyr) 
+library(survival) 
+library(survminer) 
+library(ggplot2)
+library(scales)
+library(coxphf)
+library(ggthemes)
+library(tidyverse)
+library(gtsummary)
+library(flextable)
+library(parameters)
+library(car)
+library(ComplexHeatmap)
+library(rms)
+
+#ctDNA positivity by stage and window
+```{r}
+#ctDNA at MRD
+rm(list=ls())
+setwd("~/Downloads")
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.MRD!="",]
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels=c("NEGATIVE","POSITIVE"))
+circ_data <- subset(circ_data, ctDNA.MRD %in% c("NEGATIVE", "POSITIVE"))
+circ_data$Stage <- factor(circ_data$Stage, levels=c("II","III","IV"))
+positive_counts_by_stage <- aggregate(circ_data$ctDNA.MRD == "POSITIVE", by=list(circ_data$Stage), FUN=sum)
+total_counts_by_stage <- aggregate(circ_data$ctDNA.MRD, by=list(circ_data$Stage), FUN=length)
+combined_data <- data.frame(
+  Stage = total_counts_by_stage$Group.1,
+  Total_Count = total_counts_by_stage$x,
+  Positive_Count = positive_counts_by_stage$x,
+  Rate = (positive_counts_by_stage$x / total_counts_by_stage$x) * 100  # Convert to percentage
+)
+combined_data$Rate <- sprintf("%.2f%%", combined_data$Rate)
+overall_total_count <- nrow(circ_data)
+overall_positive_count <- nrow(circ_data[circ_data$ctDNA.MRD == "POSITIVE",])
+overall_positivity_rate <- (overall_positive_count / overall_total_count) * 100  # Convert to percentage
+overall_row <- data.frame(
+  Stage = "Overall",
+  Total_Count = overall_total_count,
+  Positive_Count = overall_positive_count,
+  Rate = sprintf("%.2f%%", overall_positivity_rate)
+)
+combined_data <- rbind(combined_data, overall_row)
+print(combined_data)
+
+#ctDNA C5D1
+rm(list=ls())
+setwd("~/Downloads")
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.C5D1!="",]
+circ_data$ctDNA.C5D1 <- factor(circ_data$ctDNA.C5D1, levels=c("NEGATIVE","POSITIVE"))
+circ_data <- subset(circ_data, ctDNA.C5D1 %in% c("NEGATIVE", "POSITIVE"))
+circ_data$Stage <- factor(circ_data$Stage, levels=c("II","III","IV"))
+positive_counts_by_stage <- aggregate(circ_data$ctDNA.C5D1 == "POSITIVE", by=list(circ_data$Stage), FUN=sum)
+total_counts_by_stage <- aggregate(circ_data$ctDNA.C5D1, by=list(circ_data$Stage), FUN=length)
+combined_data <- data.frame(
+  Stage = total_counts_by_stage$Group.1,
+  Total_Count = total_counts_by_stage$x,
+  Positive_Count = positive_counts_by_stage$x,
+  Rate = (positive_counts_by_stage$x / total_counts_by_stage$x) * 100  # Convert to percentage
+)
+combined_data$Rate <- sprintf("%.2f%%", combined_data$Rate)
+overall_total_count <- nrow(circ_data)
+overall_positive_count <- nrow(circ_data[circ_data$ctDNA.C5D1 == "POSITIVE",])
+overall_positivity_rate <- (overall_positive_count / overall_total_count) * 100  # Convert to percentage
+overall_row <- data.frame(
+  Stage = "Overall",
+  Total_Count = overall_total_count,
+  Positive_Count = overall_positive_count,
+  Rate = sprintf("%.2f%%", overall_positivity_rate)
+)
+combined_data <- rbind(combined_data, overall_row)
+print(combined_data)
+
+#ctDNA C8D1
+rm(list=ls())
+setwd("~/Downloads")
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.C8D1!="",]
+circ_data$ctDNA.C8D1 <- factor(circ_data$ctDNA.C8D1, levels=c("NEGATIVE","POSITIVE"))
+circ_data <- subset(circ_data, ctDNA.C8D1 %in% c("NEGATIVE", "POSITIVE"))
+circ_data$Stage <- factor(circ_data$Stage, levels=c("II","III","IV"))
+positive_counts_by_stage <- aggregate(circ_data$ctDNA.C8D1 == "POSITIVE", by=list(circ_data$Stage), FUN=sum)
+total_counts_by_stage <- aggregate(circ_data$ctDNA.C8D1, by=list(circ_data$Stage), FUN=length)
+combined_data <- data.frame(
+  Stage = total_counts_by_stage$Group.1,
+  Total_Count = total_counts_by_stage$x,
+  Positive_Count = positive_counts_by_stage$x,
+  Rate = (positive_counts_by_stage$x / total_counts_by_stage$x) * 100  # Convert to percentage
+)
+combined_data$Rate <- sprintf("%.2f%%", combined_data$Rate)
+overall_total_count <- nrow(circ_data)
+overall_positive_count <- nrow(circ_data[circ_data$ctDNA.C8D1 == "POSITIVE",])
+overall_positivity_rate <- (overall_positive_count / overall_total_count) * 100  # Convert to percentage
+overall_row <- data.frame(
+  Stage = "Overall",
+  Total_Count = overall_total_count,
+  Positive_Count = overall_positive_count,
+  Rate = sprintf("%.2f%%", overall_positivity_rate)
+)
+combined_data <- rbind(combined_data, overall_row)
+print(combined_data)
+
+#ctDNA EOT
+rm(list=ls())
+setwd("~/Downloads")
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.EOT!="",]
+circ_data$ctDNA.EOT <- factor(circ_data$ctDNA.EOT, levels=c("NEGATIVE","POSITIVE"))
+circ_data <- subset(circ_data, ctDNA.EOT %in% c("NEGATIVE", "POSITIVE"))
+circ_data$Stage <- factor(circ_data$Stage, levels=c("II","III","IV"))
+positive_counts_by_stage <- aggregate(circ_data$ctDNA.EOT == "POSITIVE", by=list(circ_data$Stage), FUN=sum)
+total_counts_by_stage <- aggregate(circ_data$ctDNA.EOT, by=list(circ_data$Stage), FUN=length)
+combined_data <- data.frame(
+  Stage = total_counts_by_stage$Group.1,
+  Total_Count = total_counts_by_stage$x,
+  Positive_Count = positive_counts_by_stage$x,
+  Rate = (positive_counts_by_stage$x / total_counts_by_stage$x) * 100  # Convert to percentage
+)
+combined_data$Rate <- sprintf("%.2f%%", combined_data$Rate)
+overall_total_count <- nrow(circ_data)
+overall_positive_count <- nrow(circ_data[circ_data$ctDNA.EOT == "POSITIVE",])
+overall_positivity_rate <- (overall_positive_count / overall_total_count) * 100  # Convert to percentage
+overall_row <- data.frame(
+  Stage = "Overall",
+  Total_Count = overall_total_count,
+  Positive_Count = overall_positive_count,
+  Rate = sprintf("%.2f%%", overall_positivity_rate)
+)
+combined_data <- rbind(combined_data, overall_row)
+print(combined_data)
+
+#ctDNA anytime
+rm(list=ls())
+setwd("~/Downloads")
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.anytime!="",]
+circ_data$ctDNA.anytime <- factor(circ_data$ctDNA.anytime, levels=c("NEGATIVE","POSITIVE"))
+circ_data <- subset(circ_data, ctDNA.anytime %in% c("NEGATIVE", "POSITIVE"))
+circ_data$Stage <- factor(circ_data$Stage, levels=c("II","III","IV"))
+positive_counts_by_stage <- aggregate(circ_data$ctDNA.anytime == "POSITIVE", by=list(circ_data$Stage), FUN=sum)
+total_counts_by_stage <- aggregate(circ_data$ctDNA.anytime, by=list(circ_data$Stage), FUN=length)
+combined_data <- data.frame(
+  Stage = total_counts_by_stage$Group.1,
+  Total_Count = total_counts_by_stage$x,
+  Positive_Count = positive_counts_by_stage$x,
+  Rate = (positive_counts_by_stage$x / total_counts_by_stage$x) * 100  # Convert to percentage
+)
+combined_data$Rate <- sprintf("%.2f%%", combined_data$Rate)
+overall_total_count <- nrow(circ_data)
+overall_positive_count <- nrow(circ_data[circ_data$ctDNA.anytime == "POSITIVE",])
+overall_positivity_rate <- (overall_positive_count / overall_total_count) * 100  # Convert to percentage
+overall_row <- data.frame(
+  Stage = "Overall",
+  Total_Count = overall_total_count,
+  Positive_Count = overall_positive_count,
+  Rate = sprintf("%.2f%%", overall_positivity_rate)
+)
+combined_data <- rbind(combined_data, overall_row)
+print(combined_data)
+```
+
+
+#Heatmap for clinicopathologic factors
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_datadf <- as.data.frame(circ_data)
+circ_data <- circ_data %>% arrange(Stage)
+circ_datadf <- as.data.frame(circ_data)
+
+ha <- HeatmapAnnotation(
+  Stage = circ_data$Stage,
+  Sex = circ_data$Sex,
+  PrimSite = circ_data$PrimSite,
+  pT = circ_data$pT,
+  Pathology = circ_data$Pathology,
+  Chemo = circ_data$Chemo,
+  ctDNA.MRD = circ_data$ctDNA.MRD,
+  ctDNA.C5D1 = circ_data$ctDNA.C5D1,
+  ctDNA.C8D1 = circ_data$ctDNA.C8D1,
+  ctDNA.EOT = circ_data$ctDNA.EOT,
+  ctDNA.anytime = circ_data$ctDNA.anytime,
+  RecStatus = circ_data$RecStatus,
+  VitalStatus = circ_data$VitalStatus,
+  
+    col = list(Stage = c("II" = "seagreen2", "III" = "orange", "IV" = "purple"),
+    Sex = c("Female" = "goldenrod" , "Male" = "blue4"),
+    PrimSite = c("pCCA" = "darkgreen", "dCCA" ="#008BCE"),
+    pT = c("T1" = "lightblue", "T2" ="orange", "T3" = "brown" ),
+    Pathology = c("G1" = "yellow3", "G2" ="darkgreen", "G3" = "brown2"),
+    Chemo = c("CAP" = "lightblue", "GemCis" = "orange2"),
+    ctDNA.MRD = c("POSITIVE" = "red3", "NEGATIVE" ="blue"),
+    ctDNA.C5D1 = c("POSITIVE" = "red3", "NEGATIVE" ="blue"),
+    ctDNA.C8D1 = c("POSITIVE" = "red3", "NEGATIVE" ="blue"),
+    ctDNA.EOT = c("POSITIVE" = "red3", "NEGATIVE" ="blue"),
+    ctDNA.anytime = c("POSITIVE" = "red3", "NEGATIVE" ="blue"),
+    RFS.Event = c("TRUE" = "red3", "FALSE" ="blue"),
+    OS.Event = c("TRUE" = "black", "FALSE" ="grey")
+)
+)
+ht <- Heatmap(matrix(nrow = 0, ncol = length(circ_data$Stage)),show_row_names = FALSE,cluster_rows = F,cluster_columns = FALSE, top_annotation = ha)
+pdf("heatmap.pdf",width = 7, height = 7)
+draw(ht, annotation_legend_side = "bottom")
+dev.off()
+```
+
+
+#Prognostic role of ctDNA at the MRD time point
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.MRD, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.MRD) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.MRD, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="DFS - ctDNA MRD timepoint", ylab= "Disease Free Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.MRD, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#OS by ctDNA at the MRD time point
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data$OS.months=circ_data$OS.months-2
+circ_data <- circ_data[circ_data$OS.months>=0,]
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$OS.months, event = circ_data$OS.Event)~ctDNA.MRD, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.MRD) %>%
+  summarise(
+    Total = n(),
+    Events = sum(OS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$OS.months, event = circ_data$OS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.MRD, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="OS - ctDNA MRD timepoint", ylab= "Overall Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.MRD, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#Association of ctDNA MRD MTM levels with clinicopathological factors
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+
+tally(~pN, data=circ_data, margins = TRUE)
+circ_data$pN <- factor(circ_data$pN, levels = c("N1","N2"), labels = c("pN1 (n=69)","pN2 (n=20)"))
+boxplot(ctDNA.MRD.MTM~pN, data=circ_data, main="ctDNA MRD MTM - pN", xlab="pN", ylab="MTM/mL", col="white",border="black", ylim=c(0, 10))
+m1<-wilcox.test(ctDNA.MRD.MTM ~ pN, data=circ_data, na.rm=TRUE, exact=FALSE, conf.int=TRUE)
+print(m1)
+
+tally(~ResMarg, data=circ_data, margins = TRUE)
+circ_data$ResMarg <- factor(circ_data$ResMarg, levels = c("R0","R1"), labels = c("R0 (n=60)","R1 (n=29)"))
+boxplot(ctDNA.MRD.MTM~ResMarg, data=circ_data, main="ctDNA MRD MTM - Resection Margin", 
+        xlab="ResMarg", ylab="MTM/mL", col="white", border="black", ylim=c(0, 10))
+m2 <- wilcox.test(ctDNA.MRD.MTM ~ ResMarg, data=circ_data, na.rm=TRUE, exact=FALSE, conf.int=TRUE)
+print(m2)
+
+tally(~PrimSite, data=circ_data, margins = TRUE)
+circ_data$PrimSite <- factor(circ_data$PrimSite, levels = c("pCCA","dCCA"), labels = c("pCCA (n=43)","dCCA (n=46)"))
+boxplot(ctDNA.MRD.MTM~PrimSite, data=circ_data, main="ctDNA MRD MTM - Primary Site", 
+        xlab="Primary Site", ylab="MTM/mL", col="white", border="black", ylim=c(0, 10))
+m3 <- wilcox.test(ctDNA.MRD.MTM ~ PrimSite, data=circ_data, na.rm=TRUE, exact=FALSE, conf.int=TRUE)
+print(m3)
+
+tally(~Stage, data=circ_data, margins = TRUE)
+circ_data$ctDNA.MRD.MTM <- as.numeric(as.character(circ_data$ctDNA.MRD.MTM))
+circ_data$Stage <- factor(circ_data$Stage, levels = c("II","III","IV"), labels = c("II (n=37)", "III (n=40)","IV (n=12)"))
+boxplot(ctDNA.MRD.MTM~Stage, data=circ_data, main="ctDNA MRD MTM - Stage", 
+        xlab="Stage", ylab="MTM/mL", col="white", border="black", ylim=c(0, 10))
+kruskal_result <- kruskal.test(ctDNA.MRD.MTM ~ Stage, data=circ_data)
+print(kruskal_result)
+pairwise_wilcox <- pairwise.wilcox.test(circ_data$ctDNA.MRD.MTM, circ_data$Stage, 
+                                        p.adjust.method = "BH", na.rm = TRUE)
+print(pairwise_wilcox)
+
+tally(~CA19.MRD, data=circ_data, margins = TRUE)
+circ_data$CA19.MRD <- factor(circ_data$CA19.MRD, levels = c("Normal","Elevated"), labels = c("Normal (n=74)","Elevated (n=15)"))
+boxplot(ctDNA.MRD.MTM~CA19.MRD, data=circ_data, main="ctDNA MRD MTM - CA 19-9", 
+        xlab="CA 19-9", ylab="MTM/mL", col="white", border="black", ylim=c(0, 10))
+m4 <- wilcox.test(ctDNA.MRD.MTM ~ CA19.MRD, data=circ_data, na.rm=TRUE, exact=FALSE, conf.int=TRUE)
+print(m4)
+```
+
+
+#Median MTM/mL levels for ctDNA positive pts at MRD
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.MRD=="POSITIVE",]
+
+median_ctDNA <- median(circ_data$ctDNA.MRD.MTM, na.rm = TRUE)
+range_ctDNA <- range(circ_data$ctDNA.MRD.MTM, na.rm = TRUE)
+cat("Median MTM/mL post-surgery:", median_ctDNA, "\n")
+cat("Range MTM/mL post-surgery:", range_ctDNA[1], "-", range_ctDNA[2], "\n")
+```
+
+
+#Association of ctDNA MRD status with clinicopathological factors
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels = c("NEGATIVE", "POSITIVE"), labels = c("ctDNA(-)", "ctDNA(+)"))
+circ_data$pN <- factor(circ_data$pN, levels = c("N1", "N2"), labels = c("pN1", "pN2"))
+contingency_table <- table(circ_data$pN, circ_data$ctDNA.MRD)
+chi_square_test <- chisq.test(contingency_table)
+print(chi_square_test)
+fisher_exact_test <- fisher.test(contingency_table)
+print(fisher_exact_test)
+print(contingency_table)
+table_df <- as.data.frame(contingency_table)
+table_df$Total <- ave(table_df$Freq, table_df$Var1, FUN = sum)
+table_df$Percentage <- table_df$Freq / table_df$Total
+table_df$MiddlePercentage <- table_df$Percentage / 2
+ggplot(table_df, aes(x = Var1, y = Percentage, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(y = MiddlePercentage, label = Freq), position = "stack", color = "black", vjust = 1.5, size = 7) +
+  theme_minimal() +
+  labs(title = "ctDNA status - pN", 
+       x = "pN", 
+       y = "Patients (%)", 
+       fill = "ctDNA MRD",
+       caption = paste("Fisher's exact test p-value: ", format.pval(fisher_exact_test$p.value))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("ctDNA(-)" = "blue", "ctDNA(+)" = "red")) + # define custom colors
+  theme(axis.text.x = element_text(angle = 0, hjust = 1.5, size = 14), # increase x-axis text size
+        axis.text.y = element_text(size = 14, color = "black"), # increase y-axis text size
+        axis.title.x = element_text(size = 14, color = "black"), # increase x-axis label size
+        axis.title.y = element_text(size = 14, color = "black"), # increase y-axis label size
+        legend.text = element_text(size = 12, color = "black"))  # increase Progression label size
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels = c("NEGATIVE", "POSITIVE"), labels = c("ctDNA(-)", "ctDNA(+)"))
+circ_data$ResMarg <- factor(circ_data$ResMarg, levels = c("R0", "R1"), labels = c("R0", "R1"))
+contingency_table <- table(circ_data$ResMarg, circ_data$ctDNA.MRD)
+chi_square_test <- chisq.test(contingency_table)
+print(chi_square_test)
+fisher_exact_test <- fisher.test(contingency_table)
+print(fisher_exact_test)
+print(contingency_table)
+table_df <- as.data.frame(contingency_table)
+table_df$Total <- ave(table_df$Freq, table_df$Var1, FUN = sum)
+table_df$Percentage <- table_df$Freq / table_df$Total
+table_df$MiddlePercentage <- table_df$Percentage / 2
+ggplot(table_df, aes(x = Var1, y = Percentage, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(y = MiddlePercentage, label = Freq), position = "stack", color = "black", vjust = 1.5, size = 7) +
+  theme_minimal() +
+  labs(title = "ctDNA status - Margins", 
+       x = "Margins", 
+       y = "Patients (%)", 
+       fill = "ctDNA MRD",
+       caption = paste("Fisher's exact test p-value: ", format.pval(fisher_exact_test$p.value))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("ctDNA(-)" = "blue", "ctDNA(+)" = "red")) + # define custom colors
+  theme(axis.text.x = element_text(angle = 0, hjust = 1.5, size = 14), # increase x-axis text size
+        axis.text.y = element_text(size = 14, color = "black"), # increase y-axis text size
+        axis.title.x = element_text(size = 14, color = "black"), # increase x-axis label size
+        axis.title.y = element_text(size = 14, color = "black"), # increase y-axis label size
+        legend.text = element_text(size = 12, color = "black"))  # increase Progression label size
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels = c("NEGATIVE", "POSITIVE"), labels = c("ctDNA(-)", "ctDNA(+)"))
+circ_data$PrimSite <- factor(circ_data$PrimSite, levels = c("pCCA", "dCCA"), labels = c("pCCA", "dCCA"))
+contingency_table <- table(circ_data$PrimSite, circ_data$ctDNA.MRD)
+chi_square_test <- chisq.test(contingency_table)
+print(chi_square_test)
+fisher_exact_test <- fisher.test(contingency_table)
+print(fisher_exact_test)
+print(contingency_table)
+table_df <- as.data.frame(contingency_table)
+table_df$Total <- ave(table_df$Freq, table_df$Var1, FUN = sum)
+table_df$Percentage <- table_df$Freq / table_df$Total
+table_df$MiddlePercentage <- table_df$Percentage / 2
+ggplot(table_df, aes(x = Var1, y = Percentage, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(y = MiddlePercentage, label = Freq), position = "stack", color = "black", vjust = 1.5, size = 7) +
+  theme_minimal() +
+  labs(title = "ctDNA status - Primary Site", 
+       x = "Primary Site", 
+       y = "Patients (%)", 
+       fill = "ctDNA MRD",
+       caption = paste("Fisher's exact test p-value: ", format.pval(fisher_exact_test$p.value))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("ctDNA(-)" = "blue", "ctDNA(+)" = "red")) + # define custom colors
+  theme(axis.text.x = element_text(angle = 0, hjust = 1.5, size = 14), # increase x-axis text size
+        axis.text.y = element_text(size = 14, color = "black"), # increase y-axis text size
+        axis.title.x = element_text(size = 14, color = "black"), # increase x-axis label size
+        axis.title.y = element_text(size = 14, color = "black"), # increase y-axis label size
+        legend.text = element_text(size = 12, color = "black"))  # increase Progression label size
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels = c("NEGATIVE", "POSITIVE"), labels = c("ctDNA(-)", "ctDNA(+)"))
+circ_data$Stage <- factor(circ_data$Stage, levels = c("II", "III", "IV"), labels = c("II", "III", "IV"))
+contingency_table <- table(circ_data$Stage, circ_data$ctDNA.MRD)
+chi_square_test <- chisq.test(contingency_table)
+print(chi_square_test)
+fisher_exact_test <- fisher.test(contingency_table)
+print(fisher_exact_test)
+print(contingency_table)
+table_df <- as.data.frame(contingency_table)
+table_df$Total <- ave(table_df$Freq, table_df$Var1, FUN = sum)
+table_df$Percentage <- table_df$Freq / table_df$Total
+table_df$MiddlePercentage <- table_df$Percentage / 2
+ggplot(table_df, aes(x = Var1, y = Percentage, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(y = MiddlePercentage, label = Freq), position = "stack", color = "black", vjust = 1.5, size = 7) +
+  theme_minimal() +
+  labs(title = "ctDNA status - Stage", 
+       x = "Stage", 
+       y = "Patients (%)", 
+       fill = "ctDNA MRD",
+       caption = paste("Fisher's exact test p-value: ", format.pval(fisher_exact_test$p.value))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("ctDNA(-)" = "blue", "ctDNA(+)" = "red")) + # define custom colors
+  theme(axis.text.x = element_text(angle = 0, hjust = 1.5, size = 14), # increase x-axis text size
+        axis.text.y = element_text(size = 14, color = "black"), # increase y-axis text size
+        axis.title.x = element_text(size = 14, color = "black"), # increase x-axis label size
+        axis.title.y = element_text(size = 14, color = "black"), # increase y-axis label size
+        legend.text = element_text(size = 12, color = "black"))  # increase Progression label size
+
+pairwise_fisher <- function(data, factor1, factor2) {
+  levels <- unique(data[[factor1]])
+  results <- data.frame(Stage1 = character(), Stage2 = character(), p.value = numeric(), stringsAsFactors = FALSE)
+  
+  for (i in 1:(length(levels) - 1)) {
+    for (j in (i + 1):length(levels)) {
+      subset_data <- data %>% filter(data[[factor1]] %in% c(levels[i], levels[j]))
+      contingency_table_pairwise <- table(subset_data[[factor1]], subset_data[[factor2]])
+      fisher_result <- fisher.test(contingency_table_pairwise)
+      results <- rbind(results, data.frame(Stage1 = levels[i], Stage2 = levels[j], p.value = fisher_result$p.value))
+    }
+  }
+  return(results)
+}
+
+# Perform pairwise comparisons
+pairwise_results <- pairwise_fisher(circ_data, "Stage", "ctDNA.MRD")
+print(pairwise_results)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+
+circ_data$ctDNA.MRD <- factor(circ_data$ctDNA.MRD, levels = c("NEGATIVE", "POSITIVE"), labels = c("ctDNA(-)", "ctDNA(+)"))
+circ_data$CA19.MRD <- factor(circ_data$CA19.MRD, levels = c("Normal", "Elevated"), labels = c("Normal", "Elevated"))
+contingency_table <- table(circ_data$CA19.MRD, circ_data$ctDNA.MRD)
+chi_square_test <- chisq.test(contingency_table)
+print(chi_square_test)
+fisher_exact_test <- fisher.test(contingency_table)
+print(fisher_exact_test)
+print(contingency_table)
+table_df <- as.data.frame(contingency_table)
+table_df$Total <- ave(table_df$Freq, table_df$Var1, FUN = sum)
+table_df$Percentage <- table_df$Freq / table_df$Total
+table_df$MiddlePercentage <- table_df$Percentage / 2
+ggplot(table_df, aes(x = Var1, y = Percentage, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(y = MiddlePercentage, label = Freq), position = "stack", color = "black", vjust = 1.5, size = 7) +
+  theme_minimal() +
+  labs(title = "ctDNA status - CA 19-9", 
+       x = "CA 19-9", 
+       y = "Patients (%)", 
+       fill = "ctDNA MRD",
+       caption = paste("Fisher's exact test p-value: ", format.pval(fisher_exact_test$p.value))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("ctDNA(-)" = "blue", "ctDNA(+)" = "red")) + # define custom colors
+  theme(axis.text.x = element_text(angle = 0, hjust = 1.5, size = 14), # increase x-axis text size
+        axis.text.y = element_text(size = 14, color = "black"), # increase y-axis text size
+        axis.title.x = element_text(size = 14, color = "black"), # increase x-axis label size
+        axis.title.y = element_text(size = 14, color = "black"), # increase y-axis label size
+        legend.text = element_text(size = 12, color = "black"))  # increase Progression label size
+```
+
+#Prognostic role of ctDNA at C5D1
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.C5D1!="",]
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.C5D1, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C5D1) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C5D1, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="DFS - ctDNA C5D1", ylab= "Disease Free Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.C5D1 <- factor(circ_data$ctDNA.C5D1, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.C5D1, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#Multivariate regression model for DFS with ctDNA and CA 19-9
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+circ_datadf <- as.data.frame(circ_data)
+circ_datadf$Sex <- factor(circ_datadf$Sex, levels = c("Female", "Male"), labels = c("Female", "Male"))
+circ_datadf$PrimSite <- factor(circ_datadf$PrimSite, levels = c("pCCA", "dCCA"), labels = c("pCCA", "dCCA"))
+circ_datadf$Chemo <- factor(circ_datadf$Chemo, levels = c("CAP", "GemCis"), labels = c("CAP", "GemCis"))
+circ_datadf$ResMarg <- factor(circ_datadf$ResMarg, levels = c("R0", "R1"))
+circ_datadf$Stage <- factor(circ_datadf$Stage, levels = c("II", "III", "IV"), labels = c("II", "III", "IV"))
+circ_datadf$TP53 <- factor(circ_datadf$TP53, levels = c("WT", "Mut"))
+circ_datadf$CA19.C5D1 <- factor(circ_datadf$CA19.C5D1, levels = c("Normal", "Elevated"))
+circ_datadf$ctDNA.C5D1 <- factor(circ_datadf$ctDNA.C5D1, levels = c("NEGATIVE", "POSITIVE"), labels = c("Negative", "Positive"))
+surv_object<-Surv(time = circ_datadf$RFS.months, event = circ_datadf$RFS.Event) 
+cox_fit <- coxph(surv_object ~ Sex + Age + PrimSite + Stage + Chemo + ResMarg + CA19.C5D1 + ctDNA.C5D1, data=circ_datadf) 
+ggforest(cox_fit, data = circ_datadf, main = "Multivariate Regression Model for DFS - Landmark analysis", refLabel = "Reference Group")
+test.ph <- cox.zph(cox_fit)
+```
+
+#Univariate regression model for factors used at the C5D1 MVA
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+circ_data$Sex <- factor(circ_data$Sex, levels = c("Female", "Male"), labels = c("Female", "Male")) #univariate for gender
+cox_fit <- coxph(surv_object ~ Sex, data=circ_data)
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+cox_fit <- coxph(surv_object ~ Age, data=circ_data) #univariate for age
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+circ_data$PrimSite <- factor(circ_data$PrimSite, levels = c("pCCA", "dCCA"), labels = c("pCCA", "dCCA")) #univariate for Primary Site
+cox_fit <- coxph(surv_object ~ PrimSite, data=circ_data)
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ Stage, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = TRUE, conf.int = FALSE, risk.table = TRUE, break.time.by=3, palette=c("blue","green","red"), title="DFS - ctDNA C5D1 - Stage", ylab= "Disease Free Survival", xlab="Time (Months)", legend.labs=c("II", "III", "IV"), legend.title="")
+circ_data$Stage <- factor(circ_data$Stage, levels = c("II", "III", "IV"), labels = c("II", "III", "IV")) #univariate for Stage
+cox_fit <- coxph(surv_object ~ Stage, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+circ_data$Chemo <- factor(circ_data$Chemo, levels = c("CAP", "GemCis"), labels = c("CAP", "GemCis")) #univariate for Chemotherapy
+cox_fit <- coxph(surv_object ~ Chemo, data=circ_data)
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+circ_data$ResMarg <- factor(circ_data$ResMarg, levels = c("R0", "R1")) #univariate for Resection margin
+cox_fit <- coxph(surv_object ~ ResMarg, data=circ_data)
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+circ_data$CA19.C5D1 <- factor(circ_data$CA19.C5D1, levels = c("Normal", "Elevated")) #univariate for CA 19-9 C5D1
+cox_fit <- coxph(surv_object ~ CA19.C5D1, data=circ_data)
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+circ_data$ctDNA.C5D1 <- factor(circ_data$ctDNA.C5D1, levels = c("NEGATIVE", "POSITIVE"), labels = c("Negative", "Positive")) #univariate for ctDNA C5D1
+cox_fit <- coxph(surv_object ~ ctDNA.C5D1, data=circ_data)
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+#OS by ctDNA at C5D1
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.C5D1!="",]
+circ_data$OS.months=circ_data$OS.months-2
+circ_data <- circ_data[circ_data$OS.months>=0,]
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$OS.months, event = circ_data$OS.Event)~ctDNA.C5D1, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C5D1) %>%
+  summarise(
+    Total = n(),
+    Events = sum(OS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$OS.months, event = circ_data$OS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C5D1, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="OS - ctDNA C5D1", ylab= "Overall Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.C5D1 <- factor(circ_data$ctDNA.C5D1, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.C5D1, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#Prognostic role of ctDNA at C8D1
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.C8D1!="",]
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.C8D1, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C8D1) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C8D1, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="DFS - ctDNA C8D1", ylab= "Disease Free Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.C8D1 <- factor(circ_data$ctDNA.C8D1, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.C8D1, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#OS by ctDNA at C8D1
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.C8D1!="",]
+circ_data$OS.months=circ_data$OS.months-2
+circ_data <- circ_data[circ_data$OS.months>=0,]
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$OS.months, event = circ_data$OS.Event)~ctDNA.C8D1, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C8D1) %>%
+  summarise(
+    Total = n(),
+    Events = sum(OS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$OS.months, event = circ_data$OS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C8D1, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="OS - ctDNA C8D1", ylab= "Overall Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.C8D1 <- factor(circ_data$ctDNA.C8D1, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.C8D1, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#Prognostic role of ctDNA anytime post-surgery
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.anytime!="",]
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.anytime, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.anytime) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.anytime, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="DFS - ctDNA anytime post-surgery", ylab= "Disease Free Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.anytime <- factor(circ_data$ctDNA.anytime, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.anytime, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#OS by ctDNA anytime post-surgery
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.anytime!="",]
+circ_data$OS.months=circ_data$OS.months-2
+circ_data <- circ_data[circ_data$OS.months>=0,]
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$OS.months, event = circ_data$OS.Event)~ctDNA.anytime, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.anytime) %>%
+  summarise(
+    Total = n(),
+    Events = sum(OS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$OS.months, event = circ_data$OS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.anytime, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","red"), title="OS - ctDNA anytime post-surgery", ylab= "Overall Survival", xlab="Time (Months)", legend.labs=c("ctDNA Negative", "ctDNA Positive"), legend.title="")
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.anytime <- factor(circ_data$ctDNA.anytime, levels=c("NEGATIVE","POSITIVE"))
+cox_fit <- coxph(surv_object ~ ctDNA.anytime, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+
+# Extract values for HR, 95% CI, and p-value
+HR <- cox_fit_summary$coefficients[2]
+lower_CI <- cox_fit_summary$conf.int[3]
+upper_CI <- cox_fit_summary$conf.int[4]
+p_value <- cox_fit_summary$coefficients[5]
+label_text <- paste0("HR = ", round(HR, 2), " (", round(lower_CI, 2), "-", round(upper_CI, 2), "); p = ", round(p_value, 3))
+print(label_text)
+```
+
+
+#Prognostic role of ctDNA Dynamics
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 48] <- 48
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.Dynamics, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.Dynamics) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event) 
+KM_curve <- survfit(surv_object ~ ctDNA.Dynamics, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=6, palette=c("blue","green","purple","red"), title="ctDNA Dynamics | Pre-treatment - On-treatment", ylab= "Disease Free Survival", xlab="Time from Surgery (Months)", legend.title="") 
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.Dynamics <- factor(circ_data$ctDNA.Dynamics, levels=c("Persistently Negative","Converted Negative","Converted Positive", "Persistently Positive"))
+cox_fit <- coxph(surv_object ~ ctDNA.Dynamics, data=circ_data)  
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+```
+
+
+#OS ctDNA Dynamics
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data$OS.months=circ_data$OS.months-2
+circ_data <- circ_data[circ_data$OS.months>=0,]
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$OS.months, event = circ_data$OS.Event)~ctDNA.Dynamics, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.Dynamics) %>%
+  summarise(
+    Total = n(),
+    Events = sum(OS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$OS.months, event = circ_data$OS.Event) 
+KM_curve <- survfit(surv_object ~ ctDNA.Dynamics, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=6, palette=c("purple","green","blue","red"), title="MRD Dynamics | Pre-treatment - On-treatment", ylab= "Overall Survival", xlab="Time from Surgery (Months)", legend.title="") 
+summary(KM_curve, times= c(12, 24))
+circ_data$ctDNA.Dynamics <- factor(circ_data$ctDNA.Dynamics, levels=c("Persistently Negative","Converted Negative","Converted Positive", "Persistently Positive"))
+cox_fit <- coxph(surv_object ~ ctDNA.Dynamics, data=circ_data)  
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+```
+
+
+#OP for pts converted positive during ACT
+```{r}
+setwd("~/Downloads") 
+clinstage<- read.csv("ASAN_Cholangio_OP.csv")
+clinstage_df<- as.data.frame(clinstage)
+clinstage_df <- clinstage_df[clinstage_df$ctDNA.Dynamics=="Converted Positive",]
+
+##Overview plot - stratified by Stage
+oplot_stratify <-swimmer_plot(df=clinstage_df,
+                              id='PatientName',
+                              end='fu.diff.months',
+                              #name_fill='Arm',
+                              col="gray",
+                              alpha=0.75,
+                              width=.01,
+                              base_size = 14)
+oplot_stratify <- oplot_stratify + theme(panel.border = element_blank())
+oplot_stratify <- oplot_stratify + scale_y_continuous(breaks = seq(0, 108, by = 6))
+oplot_stratify <- oplot_stratify + labs(x ="Patients" , y="Months from Surgery")
+oplot_stratify
+
+##plot events
+oplot_ev3 <- oplot_stratify + swimmer_points(df_points=clinstage_df,
+                                             id='PatientName',
+                                             time='date.diff.months',
+                                             name_shape ='Event_type',
+                                             name_col = 'Event',
+                                             size=3.5,fill='black',
+                                             #col='darkgreen'
+)
+oplot_ev3
+
+#Shape customization to Event_type
+
+oplot_ev3.1 <- oplot_ev3 + ggplot2::scale_shape_manual(name="Event_type",values=c(1,16,6,18,4, 5, 23, 7, 15),breaks=c('ctDNA_neg', 'ctDNA_pos', 'Imaging', 'Surgery', 'Death', "cea_neg", "cea_pos", "ca19_neg", "ca19_pos"))
+
+oplot_ev3.1
+
+#plot treatment
+
+oplot_ev4 <- oplot_ev3.1 + swimmer_lines(df_lines=clinstage_df,
+                                         id='PatientName',
+                                         start='Tx_start.months',
+                                         end='Tx_end.months',
+                                         name_col='Tx_type',
+                                         size=3.5,
+                                         name_alpha = 1.0)
+oplot_ev4 <- oplot_ev4 + guides(linetype = guide_legend(override.aes = list(size = 5, color = "black")))
+oplot_ev4  
+
+
+#colour customization
+# orange=ACT, Black=Death, Red=PD, ctDNA negative=white, ctDNA positive=black, Surgery=blue, TURBT=gray 
+oplot_ev4.2 <- oplot_ev4 + ggplot2::scale_color_manual(name="Event",values=c( "orange", "purple", "blue", "black", "black", "red", "blue", "blue"))
+oplot_ev4.2
+```
+
+
+#ctDNA clearance proportions by chemotherapy regimen
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- circ_data[circ_data$ctDNA.MRD=="POSITIVE",]
+
+circ_data$ctDNA.Dynamics <- factor(circ_data$ctDNA.Dynamics, levels = c("Converted Negative", "Persistently Positive"), labels = c("Clearance", "No Clearance"))
+circ_data$Chemo <- factor(circ_data$Chemo, levels = c("CAP", "GemCis"))
+contingency_table <- table(circ_data$Chemo, circ_data$ctDNA.Dynamics)
+chi_square_test <- chisq.test(contingency_table)
+print(chi_square_test)
+fisher_exact_test <- fisher.test(contingency_table)
+print(fisher_exact_test)
+print(contingency_table)
+table_df <- as.data.frame(contingency_table)
+table_df$Total <- ave(table_df$Freq, table_df$Var1, FUN = sum)
+table_df$Percentage <- table_df$Freq / table_df$Total
+table_df$MiddlePercentage <- table_df$Percentage / 2
+ggplot(table_df, aes(x = Var1, y = Percentage, fill = Var2)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(y = MiddlePercentage, label = Freq), position = "stack", color = "black", vjust = 1.5, size = 7) +
+  theme_minimal() +
+  labs(title = "ctDNA clearance by Regimen", 
+       x = "Regimen", 
+       y = "Patients (%)", 
+       fill = "ctDNA Clearance",
+       caption = paste("Fisher's exact test p-value: ", format.pval(fisher_exact_test$p.value))) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Clearance" = "blue", "No Clearance" = "red")) + # define custom colors
+  theme(axis.text.x = element_text(angle = 0, hjust = 1.5, size = 14), # increase x-axis text size
+        axis.text.y = element_text(size = 14, color = "black"), # increase y-axis text size
+        axis.title.x = element_text(size = 14, color = "black"), # increase x-axis label size
+        axis.title.y = element_text(size = 14, color = "black"), # increase y-axis label size
+        legend.text = element_text(size = 12, color = "black"))  # increase Progression label size
+```
+
+
+#Prognostic role of ctDNA C5D1 on Chemotherapy - 4 groups
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+
+
+circ_data$ctDNA.C5D1.Chemo <- NA #first we create the variable for the ctDNA & NAC combination, and we assign values
+circ_data <- circ_data %>%
+  mutate(ctDNA.C5D1.Chemo = case_when(
+    Chemo == "CAP" & ctDNA.C5D1 == "NEGATIVE" ~ 1,
+    Chemo == "CAP" & ctDNA.C5D1 == "POSITIVE" ~ 2,
+    Chemo == "GemCis" & ctDNA.C5D1 == "NEGATIVE" ~ 3,
+    Chemo == "GemCis" & ctDNA.C5D1 == "POSITIVE" ~ 4
+  ))
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.C5D1.Chemo, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C5D1.Chemo) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C5D1.Chemo, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","green","purple", "red"), title="DFS - ctDNA C5D1 & Chemotherapy Regimen", ylab= "Disease Free Survival", xlab="Months from surgery", legend.labs=c("CAP & ctDNA(-)", "CAP & ctDNA(+)","GemCis & ctDNA(-)", "GemCis & ctDNA(+)"), legend.title="")
+summary(KM_curve, times= c(0, 12, 24))
+circ_data$ctDNA.C5D1.Chemo <- factor(circ_data$ctDNA.C5D1.Chemo, levels=c("1","2","3","4"))
+cox_fit <- coxph(surv_object ~ ctDNA.C5D1.Chemo, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+```
+
+
+#Prognostic role of ctDNA C8D1 on Chemotherapy - 4 groups
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C8D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+
+
+circ_data$ctDNA.C8D1.Chemo <- NA #first we create the variable for the ctDNA & NAC combination, and we assign values
+circ_data <- circ_data %>%
+  mutate(ctDNA.C8D1.Chemo = case_when(
+    Chemo == "CAP" & ctDNA.C8D1 == "NEGATIVE" ~ 1,
+    Chemo == "CAP" & ctDNA.C8D1 == "POSITIVE" ~ 2,
+    Chemo == "GemCis" & ctDNA.C8D1 == "NEGATIVE" ~ 3,
+    Chemo == "GemCis" & ctDNA.C8D1 == "POSITIVE" ~ 4
+  ))
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.C8D1.Chemo, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C8D1.Chemo) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C8D1.Chemo, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","green","purple", "red"), title="DFS - ctDNA C8D1 & Chemotherapy Regimen", ylab= "Disease Free Survival", xlab="Months from surgery", legend.labs=c("CAP & ctDNA(-)", "CAP & ctDNA(+)","GemCis & ctDNA(-)", "GemCis & ctDNA(+)"), legend.title="")
+summary(KM_curve, times= c(0, 12, 24))
+circ_data$ctDNA.C8D1.Chemo <- factor(circ_data$ctDNA.C8D1.Chemo, levels=c("1","2","3","4"))
+cox_fit <- coxph(surv_object ~ ctDNA.C8D1.Chemo, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+```
+
+
+#Prognostic role of ctDNA C5D1 on Primary Site - 4 groups
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C5D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+
+
+circ_data$ctDNA.C5D1.PrimSite <- NA #first we create the variable for the ctDNA & NAC combination, and we assign values
+circ_data <- circ_data %>%
+  mutate(ctDNA.C5D1.PrimSite = case_when(
+    PrimSite == "dCCA" & ctDNA.C5D1 == "NEGATIVE" ~ 1,
+    PrimSite == "dCCA" & ctDNA.C5D1 == "POSITIVE" ~ 2,
+    PrimSite == "pCCA" & ctDNA.C5D1 == "NEGATIVE" ~ 3,
+    PrimSite == "pCCA" & ctDNA.C5D1 == "POSITIVE" ~ 4
+  ))
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.C5D1.PrimSite, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C5D1.PrimSite) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C5D1.PrimSite, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","green","purple", "red"), title="DFS - ctDNA C5D1 & Primary Site", ylab= "Disease Free Survival", xlab="Months from surgery", legend.labs=c("dCCA & ctDNA(-)", "dCCA & ctDNA(+)","pCCA & ctDNA(-)", "pCCA & ctDNA(+)"), legend.title="")
+summary(KM_curve, times= c(0, 12, 24))
+circ_data$ctDNA.C5D1.PrimSite <- factor(circ_data$ctDNA.C5D1.PrimSite, levels=c("1","2","3","4"))
+cox_fit <- coxph(surv_object ~ ctDNA.C5D1.PrimSite, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+```
+
+
+#Prognostic role of ctDNA C8D1 on Primary Site - 4 groups
+```{r}
+rm(list=ls())
+setwd("~/Downloads") 
+circ_data <- read.csv("ASAN_ClinicalData_GL_082023.csv")
+circ_data <- subset(circ_data, !is.na(ctDNA.C8D1))
+circ_data$RFS.months=circ_data$RFS.months-2
+circ_data <- circ_data[circ_data$RFS.months>=0,]
+circ_data$RFS.months[circ_data$RFS.months > 60] <- 60
+
+
+circ_data$ctDNA.C8D1.PrimSite <- NA #first we create the variable for the ctDNA & NAC combination, and we assign values
+circ_data <- circ_data %>%
+  mutate(ctDNA.C8D1.PrimSite = case_when(
+    PrimSite == "dCCA" & ctDNA.C8D1 == "NEGATIVE" ~ 1,
+    PrimSite == "dCCA" & ctDNA.C8D1 == "POSITIVE" ~ 2,
+    PrimSite == "pCCA" & ctDNA.C8D1 == "NEGATIVE" ~ 3,
+    PrimSite == "pCCA" & ctDNA.C8D1 == "POSITIVE" ~ 4
+  ))
+circ_datadf <- as.data.frame(circ_data)
+
+survfit(Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)~ctDNA.C8D1.PrimSite, data = circ_data)
+event_summary <- circ_data %>%
+  group_by(ctDNA.C8D1.PrimSite) %>%
+  summarise(
+    Total = n(),
+    Events = sum(RFS.Event),
+    Fraction = Events / n(),
+    Percentage = (Events / n()) * 100
+  )
+print(event_summary)
+surv_object <-Surv(time = circ_data$RFS.months, event = circ_data$RFS.Event)
+KM_curve <- survfit(surv_object ~ ctDNA.C8D1.PrimSite, data = circ_data,conf.int=0.95,conf.type="log-log") 
+ggsurvplot(KM_curve, data = circ_data, pval = FALSE, conf.int = FALSE, risk.table = TRUE, break.time.by=12, palette=c("blue","green","purple", "red"), title="DFS - ctDNA C8D1 & Primary Site", ylab= "Disease Free Survival", xlab="Months from surgery", legend.labs=c("dCCA & ctDNA(-)", "dCCA & ctDNA(+)","pCCA & ctDNA(-)", "pCCA & ctDNA(+)"), legend.title="")
+summary(KM_curve, times= c(0, 12, 24))
+circ_data$ctDNA.C8D1.PrimSite <- factor(circ_data$ctDNA.C8D1.PrimSite, levels=c("1","2","3","4"))
+cox_fit <- coxph(surv_object ~ ctDNA.C8D1.PrimSite, data=circ_data) 
+ggforest(cox_fit,data = circ_data) 
+summary(cox_fit)
+cox_fit_summary <- summary(cox_fit)
+```
+
